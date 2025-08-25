@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: development
+      target: production
     ports:
       - "8501:8501"
     environment:
@@ -14,12 +14,6 @@ services:
       - BITKUB_API_SECRET=${BITKUB_API_SECRET:-}
       - USDT_MARGIN=${USDT_MARGIN:-2.5}
       - RUB_MARGIN=${RUB_MARGIN:-3.5}
-      # Автоперезагрузка Streamlit
-      - STREAMLIT_SERVER_RUN_ON_SAVE=true
-      - STREAMLIT_SERVER_FILE_WATCHER_TYPE=poll
     volumes:
       - ./.env:/app/.env:ro
-      # Монтируем код для автоперезагрузки
-      - ./main.py:/app/main.py:ro
-      - ./requirements.txt:/app/requirements.txt:ro
     restart: unless-stopped

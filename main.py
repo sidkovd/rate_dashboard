@@ -41,11 +41,9 @@ st.sidebar.subheader("Bitkub auth (опционально)")
 bitkub_api_key = st.sidebar.text_input("X-BTK-APIKEY", value=os.getenv("BITKUB_API_KEY", ""), type="password")
 bitkub_api_secret = st.sidebar.text_input("X-BTK-SECRET", value=os.getenv("BITKUB_API_SECRET", ""), type="password")
 
-st.sidebar.subheader("Нормализация Bitkub")
-subtract_const = st.sidebar.number_input("Вычесть константу из THB_USDT", value=float(os.getenv("SUBTRACT_CONST", "0.1")), step=0.01)
-
-st.sidebar.subheader("Маржа по умолчанию")
-default_margin = st.sidebar.number_input("% маржи (по умолчанию)", value=float(os.getenv("DEFAULT_MARGIN", "3.5")), step=0.1)
+st.sidebar.subheader("Маржи по умолчанию")
+usdt_margin = st.sidebar.number_input("% маржи для USDT→THB", value=float(os.getenv("USDT_MARGIN", "2.5")), step=0.1)
+rub_margin = st.sidebar.number_input("% маржи для RUB→THB", value=float(os.getenv("RUB_MARGIN", "3.5")), step=0.1)
 
 # ---------- Модели и утилиты ----------
 class FxResult(BaseModel):
@@ -151,7 +149,7 @@ def compute_rates(rapira_usd_rub: float, thb_usd: float) -> FxResult:
 colA, colB, colC = st.columns([1,1,1])
 with colA:
     if st.button("🔄 Обновить сейчас", use_container_width=True):
-        st.experimental_rerun()
+        st.rerun()
 
 # Тянем данные
 try:
@@ -161,7 +159,8 @@ try:
         bitkub_api_key or None,
         bitkub_api_secret or None,
     )
-    thb_usdt_last = round(thb_usdt_last - float(subtract_const), 2)
+    # Убираем константу 0.1 - используем как есть
+    thb_usdt_last = round(thb_usdt_last, 2)
     rapira_usdt_rub = fetch_rapira_usdt_rub(rapira_url)
     fx = compute_rates(rapira_usdt_rub, thb_usdt_last)
 except Exception as e:
@@ -177,38 +176,47 @@ col3.metric("RUB→THB (без маржи)", f"{fx.conversion_rate_base:.3f}")
 st.divider()
 
 # ---------- Маржа и пересчёт ----------
-margin = st.number_input("% маржи (на RUB часть для RUB→THB и как fee для USD→THB)", value=float(default_margin), step=0.1)
+st.subheader("📊 Настройка маржи")
+col_margin1, col_margin2 = st.columns(2)
 
-usd_thb_with_margin = fx.thb_usd * (1 - margin/100)
-rub_thb_with_margin = (fx.usd_rub_base * (1 + margin/100)) / fx.thb_usd
+with col_margin1:
+    usdt_margin_input = st.number_input("% маржи для USDT→THB", value=float(usdt_margin), step=0.1, key="usdt_margin_input")
+
+with col_margin2:
+    rub_margin_input = st.number_input("% маржи для RUB→THB", value=float(rub_margin), step=0.1, key="rub_margin_input")
+
+usd_thb_with_margin = fx.thb_usd * (1 - usdt_margin_input/100)
+rub_thb_with_margin = (fx.usd_rub_base * (1 + rub_margin_input/100)) / fx.thb_usd
 
 calc_df = pd.DataFrame([
-    {"Пара":"USDT→THB","Base":fx.thb_usd, "With Margin": usd_thb_with_margin},
-    {"Пара":"RUB→THB","Base":fx.conversion_rate_base, "With Margin": rub_thb_with_margin},
+    {"Пара":"USDT→THB","Base":fx.thb_usd, "With Margin": usd_thb_with_margin, "Margin %": usdt_margin_input},
+    {"Пара":"RUB→THB","Base":fx.conversion_rate_base, "With Margin": rub_thb_with_margin, "Margin %": rub_margin_input},
 ]).set_index("Пара").round(4)
 
 st.subheader("📊 Расчётные курсы с маржей")
 st.table(calc_df)
 
-st.caption("Логика идентична PHP: usd_rub_base = Rapira*1.04, thb_usd — Bitkub (минус константа). Маржа применяется как fee к USD→THB и как наценка к RUB→THB.")
+st.caption("Логика: usd_rub_base = Rapira*1.04, thb_usd — Bitkub. Маржа применяется как fee к USDT→THB и как наценка к RUB→THB.")
 
 # ---------- JSON для копирования/интеграций ----------
 json_dict: Dict[str, Any] = fx.model_dump()
 json_dict.update({
-    "usd_thb_with_margin": round(usd_thb_with_margin, 3),
+    "usdt_thb_with_margin": round(usd_thb_with_margin, 3),
     "rub_thb_with_margin": round(rub_thb_with_margin, 3),
-    "margin_percent": margin,
+    "usdt_margin_percent": usdt_margin_input,
+    "rub_margin_percent": rub_margin_input,
 })
 
 #st.subheader("🧩 JSON (для интеграций)")
 #st.code(__import__("json").dumps(json_dict, ensure_ascii=False, indent=2), language="json")
 
 # Кнопки быстрого копирования
-st.download_button(
-    label="⬇️ Скачать JSON",
-    file_name="fx_rates.json",
-    mime="application/json",
-    data=__import__("json").dumps(json_dict, ensure_ascii=False, indent=2).encode("utf-8"),
-)
+#st.download_button(
+#    label="⬇️ Скачать JSON",
+#    file_name="fx_rates.json",
+#    mime="application/json",
+#    data=__import__("json").dumps(json_dict, ensure_ascii=False, indent=2).encode("utf-8"),
+#)
 
-st.caption("Готово. Весь расчёт на Python, без PHP.")
+#st.caption("Готово. Весь расчёт на Python, без PHP.")
+# Тест автоперезагрузки - изменения применяются автоматически!
