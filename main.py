@@ -160,8 +160,8 @@ try:
         bitkub_api_key or None,
         bitkub_api_secret or None,
     )
-    # Убираем константу 0.1 - используем как есть
-    thb_usdt_last = round(thb_usdt_last, 2)
+    # Вычитаем константу 0.1 как было раньше
+    thb_usdt_last = round(thb_usdt_last - 0.1, 2)
     rapira_usdt_rub = fetch_rapira_usdt_rub(rapira_url)
     fx = compute_rates(rapira_usdt_rub, thb_usdt_last)
 except Exception as e:
