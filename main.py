@@ -175,6 +175,172 @@ col3.metric("RUB→THB (без маржи)", f"{fx.conversion_rate_base:.3f}")
 
 st.divider()
 
+# ---------- Калькулятор конвертации ----------
+st.subheader("🧮 Калькулятор конвертации")
+
+# Создаем табы для разных типов конвертации
+tab1, tab2 = st.tabs(["💱 USDT ↔ THB", "💵 RUB ↔ THB"])
+
+with tab1:
+    st.write("**Конвертация USDT в THB и наоборот**")
+    
+    col_usdt1, col_usdt2 = st.columns(2)
+    
+    with col_usdt1:
+        st.write("**USDT → THB**")
+        usdt_amount = st.number_input("Сколько USDT отдаете?", value=1000.0, step=100.0, key="usdt_to_thb")
+        thb_received = usdt_amount * (1 - usdt_margin_input/100) * fx.thb_usd
+        thb_received = round(thb_received, 2)
+        
+        # Форматируем числа с разделителями
+        usdt_formatted = f"{usdt_amount:,.0f}" if usdt_amount.is_integer() else f"{usdt_amount:,.2f}"
+        thb_formatted = f"{thb_received:,.0f}" if thb_received.is_integer() else f"{thb_received:,.2f}"
+        
+        # Красивая карточка с результатом
+        st.info(f"""
+        **💱 USDT → THB**
+        
+        **Отдаете:** {usdt_formatted} USDT  
+        **Получаете:** {thb_formatted} ฿  
+        **Курс:** {fx.thb_usd:.2f}
+        """)
+        
+        # Кнопки копирования в ряд
+        col_copy1, col_copy2 = st.columns(2)
+        with col_copy1:
+            if st.button("🇷🇺 Copy Ru", key="copy_usdt_to_thb_ru", use_container_width=True):
+                usdt_to_thb_text_ru = f"""💱 USDT → THB
+Отдаете: {usdt_formatted} USDT
+Получаете: {thb_formatted} ฿
+Курс: {fx.thb_usd:.2f}"""
+                st.success("✅ Скопировано в буфер обмена!")
+                st.code(usdt_to_thb_text_ru)
+        
+        with col_copy2:
+            if st.button("🇺🇸 Copy En", key="copy_usdt_to_thb_en", use_container_width=True):
+                usdt_to_thb_text_en = f"""💱 USDT → THB
+U give: {usdt_formatted} USDT
+U receive: {thb_formatted} ฿
+Rate: {fx.thb_usd:.1f}"""
+                st.success("✅ Copied to clipboard!")
+                st.code(usdt_to_thb_text_en)
+    
+    with col_usdt2:
+        st.write("**THB → USDT**")
+        thb_amount = st.number_input("Сколько THB отдаете?", value=30000.0, step=1000.0, key="thb_to_usdt")
+        usdt_received = thb_amount / fx.thb_usd / (1 - usdt_margin_input/100)
+        usdt_received = round(usdt_received, 2)
+        
+        # Форматируем числа с разделителями
+        thb_formatted_rev = f"{thb_amount:,.0f}" if thb_amount.is_integer() else f"{thb_amount:,.2f}"
+        usdt_formatted_rev = f"{usdt_received:,.0f}" if usdt_received.is_integer() else f"{usdt_received:,.2f}"
+        
+        # Красивая карточка с результатом
+        st.info(f"""
+        **💱 THB → USDT**
+        
+        **Отдаете:** {thb_formatted_rev} ฿  
+        **Получаете:** {usdt_formatted_rev} USDT  
+        **Курс:** {fx.thb_usd:.2f}
+        """)
+        
+        # Кнопки копирования в ряд
+        col_copy3, col_copy4 = st.columns(2)
+        with col_copy3:
+            if st.button("🇷🇺 Copy Ru", key="copy_thb_to_usdt_ru", use_container_width=True):
+                thb_to_usdt_text_ru = f"""💱 THB → USDT
+Отдаете: {thb_formatted_rev} ฿
+Получаете: {usdt_formatted_rev} USDT
+Курс: {fx.thb_usd:.2f}"""
+                st.success("✅ Скопировано в буфер обмена!")
+                st.code(thb_to_usdt_text_ru)
+        
+        with col_copy4:
+            if st.button("🇺🇸 Copy En", key="copy_thb_to_usdt_en", use_container_width=True):
+                thb_to_usdt_text_en = f"""💱 THB → USDT
+U give: {thb_formatted_rev} ฿
+U receive: {usdt_formatted_rev} USDT
+Rate: {fx.thb_usd:.1f}"""
+                st.success("✅ Copied to clipboard!")
+                st.code(thb_to_usdt_text_en)
+
+with tab2:
+    st.write("**Конвертация RUB в THB и наоборот**")
+    
+    col_rub1, col_rub2 = st.columns(2)
+    
+    with col_rub1:
+        st.write("**RUB → THB**")
+        rub_amount = st.number_input("Сколько RUB отдаете?", value=100000.0, step=10000.0, key="rub_to_thb")
+        thb_received_rub = rub_amount / (fx.usd_rub_base * (1 + rub_margin_input/100)) * fx.thb_usd
+        thb_received_rub = round(thb_received_rub, 2)
+        
+        # Форматируем числа с разделителями
+        rub_formatted = f"{rub_amount:,.0f}" if rub_amount.is_integer() else f"{rub_amount:,.2f}"
+        thb_formatted_rub = f"{thb_received_rub:,.0f}" if thb_received_rub.is_integer() else f"{thb_received_rub:,.2f}"
+        
+        # Красивая карточка с результатом
+        st.info(f"""
+        **💵 RUB → THB**
+        
+        **Отдаете:** {rub_formatted} RUB  
+        **Получаете:** {thb_formatted_rub} ฿  
+        **Курс:** {fx.usd_rub_base:.5f} RUB/THB ({1/fx.usd_rub_base:.3f})
+        """)
+        
+        # Кнопки копирования в ряд
+        col_copy5, col_copy6 = st.columns(2)
+        with col_copy5:
+            if st.button("🇷🇺 Copy Ru", key="copy_rub_to_thb_ru", use_container_width=True):
+                rub_to_thb_text_ru = f"""💵 {rub_formatted} RUB -> {thb_formatted_rub} THB
+Курс: {fx.usd_rub_base:.5f} RUB/THB ({1/fx.usd_rub_base:.3f})"""
+                st.success("✅ Скопировано в буфер обмена!")
+                st.code(rub_to_thb_text_ru)
+        
+        with col_copy6:
+            if st.button("🇺🇸 Copy En", key="copy_rub_to_thb_en", use_container_width=True):
+                rub_to_thb_text_en = f"""💵 {rub_formatted} RUB -> {thb_formatted_rub} THB
+Rate: {fx.usd_rub_base:.5f} RUB/THB ({1/fx.usd_rub_base:.3f})"""
+                st.success("✅ Copied to clipboard!")
+                st.code(rub_to_thb_text_en)
+    
+    with col_rub2:
+        st.write("**THB → RUB**")
+        thb_amount_rub = st.number_input("Сколько THB отдаете?", value=30000.0, step=1000.0, key="thb_to_rub")
+        rub_received = thb_amount_rub * (fx.usd_rub_base * (1 + rub_margin_input/100)) / fx.thb_usd
+        rub_received = round(rub_received, 2)
+        
+        # Форматируем числа с разделителями
+        thb_formatted_rub_rev = f"{thb_amount_rub:,.0f}" if thb_amount_rub.is_integer() else f"{thb_amount_rub:,.2f}"
+        rub_formatted_rev = f"{rub_received:,.0f}" if rub_received.is_integer() else f"{rub_received:,.2f}"
+        
+        # Красивая карточка с результатом
+        st.info(f"""
+        **💵 THB → RUB**
+        
+        **Отдаете:** {thb_formatted_rub_rev} ฿  
+        **Получаете:** {rub_formatted_rev} RUB  
+        **Курс:** {fx.usd_rub_base:.5f} RUB/THB ({1/fx.usd_rub_base:.3f})
+        """)
+        
+        # Кнопки копирования в ряд
+        col_copy7, col_copy8 = st.columns(2)
+        with col_copy7:
+            if st.button("🇷🇺 Copy Ru", key="copy_thb_to_rub_ru", use_container_width=True):
+                thb_to_rub_text_ru = f"""💵 {thb_formatted_rub_rev} THB -> {rub_formatted_rev} RUB
+Курс: {fx.usd_rub_base:.5f} RUB/THB ({1/fx.usd_rub_base:.3f})"""
+                st.success("✅ Скопировано в буфер обмена!")
+                st.code(thb_to_rub_text_ru)
+        
+        with col_copy8:
+            if st.button("🇺🇸 Copy En", key="copy_thb_to_rub_en", use_container_width=True):
+                thb_to_rub_text_en = f"""💵 {thb_formatted_rub_rev} THB -> {rub_formatted_rev} RUB
+Rate: {fx.usd_rub_base:.5f} RUB/THB ({1/fx.usd_rub_base:.3f})"""
+                st.success("✅ Copied to clipboard!")
+                st.code(thb_to_rub_text_en)
+
+st.divider()
+
 # ---------- Маржа и пересчёт ----------
 st.subheader("📊 Настройка маржи")
 col_margin1, col_margin2 = st.columns(2)
@@ -197,130 +363,6 @@ st.subheader("📊 Расчётные курсы с маржей")
 st.table(calc_df)
 
 st.caption("Логика: usd_rub_base = Rapira*1.04, thb_usd — Bitkub. Маржа применяется как fee к USDT→THB и как наценка к RUB→THB.")
-
-# ---------- Калькулятор конвертации ----------
-st.subheader("🧮 Калькулятор конвертации")
-
-# Создаем табы для разных типов конвертации
-tab1, tab2 = st.tabs(["💱 USDT ↔ THB", "💵 RUB ↔ THB"])
-
-with tab1:
-    st.write("**Конвертация USDT в THB и наоборот**")
-    
-    col_usdt1, col_usdt2 = st.columns(2)
-    
-    with col_usdt1:
-        st.write("**USDT → THB**")
-        usdt_amount = st.number_input("Сколько USDT отдаете?", value=1000.0, step=100.0, key="usdt_to_thb")
-        thb_received = usdt_amount * (1 - usdt_margin_input/100) * fx.thb_usd
-        thb_received = round(thb_received, 2)
-        
-        # Форматируем числа с разделителями
-        usdt_formatted = f"{usdt_amount:,.0f}" if usdt_amount.is_integer() else f"{usdt_amount:,.2f}"
-        thb_formatted = f"{thb_received:,.0f}" if thb_received.is_integer() else f"{thb_received:,.2f}"
-        
-        st.write(f"**Отдаете:** {usdt_formatted} USDT")
-        st.write(f"**Получаете:** {thb_formatted} ฿")
-        st.write(f"**Курс:** {fx.thb_usd:.2f}")
-        
-        # Текст для копирования
-        usdt_to_thb_text = f"""💱 USDT → THB
-Отдаете: {usdt_formatted} USDT
-Получаете: {thb_formatted} ฿
-Курс: {fx.thb_usd:.2f}
-
-💱 USDT → THB
-U give: {usdt_formatted} USDT
-U receive: {thb_formatted} ฿
-Rate: {fx.thb_usd:.1f}"""
-        
-        if st.button("📋 Копировать", key="copy_usdt_to_thb"):
-            st.write("✅ Скопировано в буфер обмена!")
-            st.code(usdt_to_thb_text)
-    
-    with col_usdt2:
-        st.write("**THB → USDT**")
-        thb_amount = st.number_input("Сколько THB отдаете?", value=30000.0, step=1000.0, key="thb_to_usdt")
-        usdt_received = thb_amount / fx.thb_usd / (1 - usdt_margin_input/100)
-        usdt_received = round(usdt_received, 2)
-        
-        # Форматируем числа с разделителями
-        thb_formatted_rev = f"{thb_amount:,.0f}" if thb_amount.is_integer() else f"{thb_amount:,.2f}"
-        usdt_formatted_rev = f"{usdt_received:,.0f}" if usdt_received.is_integer() else f"{usdt_received:,.2f}"
-        
-        st.write(f"**Отдаете:** {thb_formatted_rev} ฿")
-        st.write(f"**Получаете:** {usdt_formatted_rev} USDT")
-        st.write(f"**Курс:** {fx.thb_usd:.2f}")
-        
-        # Текст для копирования
-        thb_to_usdt_text = f"""💱 THB → USDT
-Отдаете: {thb_formatted_rev} ฿
-Получаете: {usdt_formatted_rev} USDT
-Курс: {fx.thb_usd:.2f}
-
-💱 THB → USDT
-U give: {thb_formatted_rev} ฿
-U receive: {usdt_formatted_rev} USDT
-Rate: {fx.thb_usd:.1f}"""
-        
-        if st.button("📋 Копировать", key="copy_thb_to_usdt"):
-            st.write("✅ Скопировано в буфер обмена!")
-            st.code(thb_to_usdt_text)
-
-with tab2:
-    st.write("**Конвертация RUB в THB и наоборот**")
-    
-    col_rub1, col_rub2 = st.columns(2)
-    
-    with col_rub1:
-        st.write("**RUB → THB**")
-        rub_amount = st.number_input("Сколько RUB отдаете?", value=100000.0, step=10000.0, key="rub_to_thb")
-        thb_received_rub = rub_amount / (fx.usd_rub_base * (1 + rub_margin_input/100)) * fx.thb_usd
-        thb_received_rub = round(thb_received_rub, 2)
-        
-        # Форматируем числа с разделителями
-        rub_formatted = f"{rub_amount:,.0f}" if rub_amount.is_integer() else f"{rub_amount:,.2f}"
-        thb_formatted_rub = f"{thb_received_rub:,.0f}" if thb_received_rub.is_integer() else f"{thb_received_rub:,.2f}"
-        
-        st.write(f"**Отдаете:** {rub_formatted} RUB")
-        st.write(f"**Получаете:** {thb_formatted_rub} ฿")
-        st.write(f"**Курс:** {fx.usd_rub_base:.5f} RUB/THB ({1/fx.usd_rub_base:.3f})")
-        
-        # Текст для копирования
-        rub_to_thb_text = f"""💵 {rub_formatted} RUB -> {thb_formatted_rub} THB
-Курс: {fx.usd_rub_base:.5f} RUB/THB ({1/fx.usd_rub_base:.3f})
-
-💵 {rub_formatted} RUB -> {thb_formatted_rub} THB
-Rate: {fx.usd_rub_base:.5f} RUB/THB ({1/fx.usd_rub_base:.3f})"""
-        
-        if st.button("📋 Копировать", key="copy_rub_to_thb"):
-            st.write("✅ Скопировано в буфер обмена!")
-            st.code(rub_to_thb_text)
-    
-    with col_rub2:
-        st.write("**THB → RUB**")
-        thb_amount_rub = st.number_input("Сколько THB отдаете?", value=30000.0, step=1000.0, key="thb_to_rub")
-        rub_received = thb_amount_rub * (fx.usd_rub_base * (1 + rub_margin_input/100)) / fx.thb_usd
-        rub_received = round(rub_received, 2)
-        
-        # Форматируем числа с разделителями
-        thb_formatted_rub_rev = f"{thb_amount_rub:,.0f}" if thb_amount_rub.is_integer() else f"{thb_amount_rub:,.2f}"
-        rub_formatted_rev = f"{rub_received:,.0f}" if rub_received.is_integer() else f"{rub_received:,.2f}"
-        
-        st.write(f"**Отдаете:** {thb_formatted_rub_rev} ฿")
-        st.write(f"**Получаете:** {rub_formatted_rev} RUB")
-        st.write(f"**Курс:** {fx.usd_rub_base:.5f} RUB/THB ({1/fx.usd_rub_base:.3f})")
-        
-        # Текст для копирования
-        thb_to_rub_text = f"""💵 {thb_formatted_rub_rev} THB -> {rub_formatted_rev} RUB
-Курс: {fx.usd_rub_base:.5f} RUB/THB ({1/fx.usd_rub_base:.3f})
-
-💵 {thb_formatted_rub_rev} THB -> {rub_formatted_rev} RUB
-Rate: {fx.usd_rub_base:.5f} RUB/THB ({1/fx.usd_rub_base:.3f})"""
-        
-        if st.button("📋 Копировать", key="copy_thb_to_rub"):
-            st.write("✅ Скопировано в буфер обмена!")
-            st.code(thb_to_rub_text)
 
 # ---------- JSON для копирования/интеграций ----------
 json_dict: Dict[str, Any] = fx.model_dump()
